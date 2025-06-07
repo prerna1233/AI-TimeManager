@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Study Plan Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body, html {
+      height: 100%;
+      background: #dff0e0;
+      color: #1b3a1b;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Container: max-width, flex, full height */
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 1100px;
+      height: 90vh; /* Fixed height for sticky sidebar */
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(67, 160, 71, 0.35);
+      overflow: hidden;
+      background: white;
+    }
+
+    /* Sidebar - fixed width, sticky with scroll */
+    .sidebar {
+      background: #43a047;
+      width: 38%; /* slightly narrower for balance */
+      padding: 32px 28px;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 90vh; /* match container height */
+      overflow-y: auto;
+      user-select: none;
+    }
+
+    .sidebar h2 {
+      font-weight: 700;
+      font-size: 1.6rem;
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+    .sidebar p {
+      font-weight: 400;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex-grow: 1;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.75rem;
+      margin-bottom: 0.3rem;
+      color: #d0f0c0;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      outline: none;
+      box-shadow: inset 0 0 6px #a3d4a5cc;
+      transition: box-shadow 0.25s ease;
+      background: #e8f5e9;
+      color: #2c6b2c;
+      font-weight: 600;
+    }
+    input::placeholder {
+      font-style: italic;
+      color: #6fa96f;
+      font-weight: 400;
+    }
+    input:focus {
+      box-shadow: 0 0 9px #66bb6acc;
+      background: #c9e6c9;
+    }
+
+    /* Button fixed at bottom with margin and padding */
+    button {
+      margin-top: auto; /* push to bottom */
+      background: linear-gradient(135deg, #388e3c, #66bb6a);
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 0;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 5px 15px #66bb6a88;
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    button:hover,
+    button:focus-visible {
+      box-shadow: 0 7px 25px #388e3ccc;
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    /* Output section - fills rest of container and scrolls */
+    .output-section {
+      width: 62%;
+      padding: 36px 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      background: #f5fdf5;
+      color: #2e7d32;
+      user-select: text;
+    }
+    .output-section h3 {
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #a5d6a7;
+      padding-bottom: 0.4rem;
+      user-select: none;
+    }
+    pre.output {
+      white-space: pre-wrap;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      background: #e0f2e9;
+      border-radius: 12px;
+      padding: 18px 22px;
+      box-shadow: inset 0 0 12px #a5d6a7bb;
+      min-height: 220px;
+      overflow-y: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        max-width: 90vw;
+      }
+      .sidebar, .output-section {
+        width: 100%;
+        padding: 28px 24px;
+        height: auto;
+        position: relative;
+      }
+      .sidebar {
+        position: relative;
+        height: auto;
+        overflow-y: visible;
+      }
+      button {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        padding: 12px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" role="main" aria-label="Study plan generator interface">
+    <aside class="sidebar" aria-label="Input form">
+      <h2>Study Plan Generator</h2>
+      <p>Enter your study subjects, deadlines, and available hours per day to get a tailored study plan.</p>
+      <form id="plan-form" aria-describedby="form-desc">
+        <label for="subjects">Subjects (comma separated)</label>
+        <input type="text" id="subjects" placeholder="Math, Physics, History" required autocomplete="off" />
+
+        <label for="deadlines">Deadlines (JSON format)</label>
+        <input type="text" id="deadlines" placeholder='{"Math": "2025-06-10"}' required autocomplete="off" />
+
+        <label for="freeHours">Free Hours per Day</label>
+        <input type="number" id="freeHours" min="1" max="24" placeholder="3" required autocomplete="off" />
+
+        <label for="extraNotes">Extra Notes (Optional)</label>
+        <input type="text" id="extraNotes" placeholder="E.g. prefer mornings" autocomplete="off" />
+
+        <button type="submit" aria-label="Generate study plan">Generate Plan</button>
+      </form>
+    </aside>
+
+    <section class="output-section" aria-live="polite" aria-atomic="true" role="region" tabindex="0">
+      <h3>Your Study Plan</h3>
+      <pre class="output" id="plan-output">Your study plan will appear here.</pre>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+   * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(135deg, #e0f2f1 0%, #dbeafe 100%);
+      color: #1f2937;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+    
+      background: #14b8a6;
+      padding: 16px 32px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      text-align: center;
+      z-index: 10;
+      user-select: none;
+    }
+
+    header h1 {
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 4px;
+      letter-spacing: 0.8px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    header p {
+      font-weight: 400;
+      font-size: 1rem;
+      opacity: 0.85;
+    }
+
+    main {
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .card {
+      background: white;
+      max-width: 700px;
+      width: 100%;
+      border-radius: 24px;
+      box-shadow: 0 16px 40px rgba(20, 184, 166, 0.3);
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      min-height: 560px;
+      box-sizing: border-box;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px 32px;
+      width: 100%;
+    }
+
+    .float-label {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-width: 0;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      font-size: 1rem;
+      padding: 14px 12px 14px 44px;
+      border-radius: 12px;
+      border: 2px solid #cbd5e1;
+      background: #f9fafb;
+      color: #1e293b;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+      outline-offset: 2px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: #14b8a6;
+      background-color: #fff;
+      box-shadow: 0 0 12px #14b8a6aa;
+      outline: none;
+    }
+
+    label {
+      position: absolute;
+      top: 16px;
+      left: 44px;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.9rem;
+      pointer-events: none;
+      transition: all 0.25s ease-in-out;
+      user-select: none;
+      background: transparent;
+      padding: 0 4px;
+    }
+
+    input:focus + label,
+    input:not(:placeholder-shown) + label {
+      top: 4px;
+      left: 12px;
+      font-size: 0.75rem;
+      color: #14b8a6;
+      background: white;
+      border-radius: 3px;
+      box-shadow: 0 0 5px #14b8a6aa;
+    }
+
+    .input-icon {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      fill: #94a3b8;
+      pointer-events: none;
+    }
+
+    button {
+      grid-column: 1 / -1;
+      padding: 14px 0;
+      background-color: #14b8a6;
+      border: none;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(20, 184, 166, 0.5);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+
+    button:hover,
+    button:focus-visible {
+      background-color: #0f766e;
+      box-shadow: 0 14px 42px rgba(15, 118, 110, 0.7);
+      outline: none;
+    }
+
+    .output {
+      background: #d1fae5;
+      border-radius: 16px;
+      padding: 24px 32px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      color: #065f46;
+      box-shadow: inset 0 0 24px #14b8a6aa;
+      overflow-y: auto;
+      flex-grow: 1;
+      white-space: pre-wrap;
+      outline: none;
+      min-height: 220px;
+      user-select: text;
+      scrollbar-width: thin;
+      scrollbar-color: #14b8a6cc transparent;
+      box-sizing: border-box;
+    }
+
+    .output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .output::-webkit-scrollbar-thumb {
+      background-color: #14b8a6cc;
+      border-radius: 16px;
+    }
+
+    .output::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    footer {
+      position: sticky;
+      bottom: 0;
+      background: #14b8a6;
+      color: white;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 -4px 12px rgba(37, 99, 235, 0.3);
+      user-select: none;
+      z-index: 10;
+    }
+    
+
+    @media (max-width: 720px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 24px 28px;
+        min-height: auto;
+      }
+    }
+  
