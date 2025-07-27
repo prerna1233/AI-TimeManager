@@ -1,93 +1,91 @@
-// document.getElementById("plan-form").addEventListener("submit", async function (e) {
-//     e.preventDefault();
-//     generatePlan();
-//   });
+document.addEventListener('DOMContentLoaded', function () {
+    const connectCalendarBtn = document.getElementById('connect-calendar-btn');
+    const useCalendarCheckbox = document.getElementById('use-calendar-checkbox');
+    const manualHoursInput = document.getElementById('manual-hours-input');
+    const planForm = document.getElementById('plan-form');
+    const planOutput = document.getElementById('plan-output');
+    const subjectsInput = document.getElementById('subjects');
+    const deadlinesInput = document.getElementById('deadlines');
 
 
-//   async function generatePlan() {
-//     const subjectsInput = document.getElementById("subjects").value.trim();
-//     const deadlinesInput = document.getElementById("deadlines").value.trim();
-//     const freeHours = parseInt(document.getElementById("freeHours").value.trim());
-//     const extraNotes = document.getElementById("extraNotes").value.trim();
-//     const output = document.getElementById("plan-output");
+    const API_BASE_URL = 'http://localhost:3000';
 
-//     try {
-//       const subjects = subjectsInput.split(",").map(s => s.trim());
-//       const deadlines = JSON.parse(deadlinesInput);
+    // Check auth status on page load
+    fetch(`${API_BASE_URL}/api/auth-status`)
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data.isAuthenticated) {
+                connectCalendarBtn.textContent = 'Connected to Google Calendar';
+                connectCalendarBtn.disabled = true;
+                useCalendarCheckbox.checked = true;
+                manualHoursInput.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error("Error checking auth status:", error);
+            planOutput.textContent = "Could not connect to the server. Please ensure it's running.";
+        });
 
-//       if (subjects.length === 0 || isNaN(freeHours)) {
-//         output.textContent = "Please fill out all required fields properly.";
-//         return;
-//       }
+    // Redirect to Google auth on button click
+    connectCalendarBtn.addEventListener('click', () => {
+        window.location.href = `${API_BASE_URL}/auth/google`;
+    });
 
-//       let plan = ` Your Study Plan\n\nTotal Free Hours per Day: ${freeHours} hrs\n\n`;
+    // Toggle manual hours input based on checkbox
+    useCalendarCheckbox.addEventListener('change', () => {
+        manualHoursInput.style.display = useCalendarCheckbox.checked ? 'none' : 'block';
+    });
 
-//       subjects.forEach(subject => {
-//         const deadline = deadlines[subject] || "No deadline";
-//         const hoursPerSubject = (freeHours / subjects.length).toFixed(2);
-//         plan += ` ${subject}\n  ➤ Deadline: ${deadline}\n  ➤ Suggested Time: ${hoursPerSubject} hrs/day\n\n`;
-//       });
+    planForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        await generatePlan();
+    });
 
-//       if (extraNotes) {
-//         plan += ` Notes:\n${extraNotes}`;
-//       }
+    async function generatePlan() {
+        const subjects = subjectsInput.value.trim();
+        const deadlines = deadlinesInput.value.trim();
+        const freeHours = document.getElementById("freeHours").value.trim();
+        const extraNotes = document.getElementById("extraNotes").value.trim();
+        const useCalendar = useCalendarCheckbox.checked;
 
-//       output.textContent = plan;
+        let requestBody = {
+            subjects: subjects.split(",").map(s => s.trim()),
+            deadlines: JSON.parse(deadlines),
+            extraNotes,
+            useCalendar
+        };
 
-//     } catch (error) {
-//       output.textContent = " Error: Please enter valid JSON for deadlines.\nExample: { \"Math\": \"2025-06-10\", \"Science\": \"2025-06-12\" }";
-//     }
-//   }
+        if (!useCalendar) {
+            if (!freeHours) {
+                planOutput.textContent = "Please provide your free hours per day.";
+                return;
+            }
+            requestBody.freeHours = parseInt(freeHours);
+        }
 
+        try {
+            const response = await fetch(`${API_BASE_URL}/generate-plan`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(requestBody),
+            });
 
-
-
-
-
-
-  document.getElementById("plan-form").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    await generatePlanFromGemini();
-  });
-
-  async function generatePlanFromGemini() {
-    const subjectsInput = document.getElementById("subjects").value.trim();
-    const deadlinesInput = document.getElementById("deadlines").value.trim();
-    const freeHours = parseInt(document.getElementById("freeHours").value.trim());
-    const extraNotes = document.getElementById("extraNotes").value.trim();
-    const output = document.getElementById("plan-output");
-
-    try {
-      const subjects = subjectsInput.split(",").map(s => s.trim());
-      const deadlines = JSON.parse(deadlinesInput);
-
-      if (subjects.length === 0 || isNaN(freeHours)) {
-        output.textContent = "Please fill out all required fields properly.";
-        return;
-      }
-
-      const response = await fetch("http://localhost:5000/generate-plan", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subjects,
-          deadlines,
-          freeHours,
-          extraNotes
-        }),
-      });
-
-      const data = await response.json();
-      if (data.plan) {
-        output.textContent = data.plan;
-      } else {
-        output.textContent = "Something went wrong. Please try again.";
-      }
-
-    } catch (error) {
-      output.textContent = "❌ Error: Please enter valid JSON for deadlines.\nExample: { \"Math\": \"2025-06-10\", \"Science\": \"2025-06-12\" }";
-      console.error(error);
+            const data = await response.json();
+            if (response.ok) {
+                planOutput.textContent = data.plan;
+            } else {
+                planOutput.textContent = `Error: ${data.error || 'Something went wrong.'}`;
+            }
+        } catch (error) {
+            planOutput.textContent = "❌ Error: Please enter valid JSON for deadlines.\nExample: { \"Math\": \"2025-06-10\", \"Science\": \"2025-06-12\" }";
+            console.error(error);
+        }
     }
-  }
+});

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Study Plan Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
   <style>
     /* Reset */
     * {
@@ -190,16 +191,22 @@
       <h2>Study Plan Generator</h2>
       <p>Enter your study subjects, deadlines, and available hours per day to get a tailored study plan.</p>
       <form id="plan-form" aria-describedby="form-desc">
-        <label for="subjects">Subjects (comma separated)</label>
-        <input type="text" id="subjects" placeholder="Math, Physics, History" required autocomplete="off" />
+        <label for="subjects">Subjects (comma-separated):</label>
+        <input type="text" id="subjects" name="subjects" placeholder="e.g., Math, Science, History" required />
 
-        <label for="deadlines">Deadlines (JSON format)</label>
-        <input type="text" id="deadlines" placeholder='{"Math": "2025-06-10"}' required autocomplete="off" />
-
-        <label for="freeHours">Free Hours per Day</label>
-        <input type="number" id="freeHours" min="1" max="24" placeholder="3" required autocomplete="off" />
-
-        <label for="extraNotes">Extra Notes (Optional)</label>
+        <label for="deadlines">Deadlines (JSON format):</label>
+        <input type="text" id="deadlines" name="deadlines" placeholder='e.g., { "Math": "2025-08-15" }' required />
+        
+        <button type="button" id="connect-calendar-btn">Connect Google Calendar</button>
+        <div class="availability-toggle">
+          <input type="checkbox" id="use-calendar-checkbox" name="useCalendar">
+          <label for="use-calendar-checkbox">Use Google Calendar for availability</label>
+        </div>
+        <div id="manual-hours-input">
+            <label for="freeHours">Free Hours per Day:</label>
+            <input type="number" id="freeHours" name="freeHours" placeholder="e.g., 3" />
+        </div>
+        <label for="extraNotes">Extra Notes:</label>
         <input type="text" id="extraNotes" placeholder="E.g. prefer mornings" autocomplete="off" />
 
         <button type="submit" aria-label="Generate study plan">Generate Plan</button>
@@ -208,10 +215,73 @@
 
     <section class="output-section" aria-live="polite" aria-atomic="true" role="region" tabindex="0">
       <h3>Your Study Plan</h3>
-      <pre class="output" id="plan-output">Your study plan will appear here.</pre>
+      <pre class="output" id="plan-output"><span id="plan-loading" style="display:none;"><svg width="28" height="28" viewBox="0 0 50 50" style="vertical-align:middle;"><circle cx="25" cy="25" r="20" fill="none" stroke="#43a047" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 31.4" transform="rotate(-90 25 25)"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/></circle></svg> Loading...</span>Your study plan will appear here.</pre>
     </section>
   </div>
 
   <script src="script.js"></script>
+  <script>
+  // Show loading spinner in the output area
+  const planOutput = document.getElementById('plan-output');
+  const planLoading = document.getElementById('plan-loading');
+  const form = document.getElementById('plan-form');
+  if (form) {
+    form.addEventListener('submit', function() {
+      if (planLoading) planLoading.style.display = '';
+      planOutput.childNodes[planOutput.childNodes.length-1].textContent = '';
+    });
+  }
+  // Hide loading spinner when plan is received (call this in your script.js after plan is loaded)
+  window.hidePlanLoading = function() {
+    if (planLoading) planLoading.style.display = 'none';
+  };
+
+  function renderPlanTable(planText) {
+    // Try to parse a simple plan format (subject: time per day, date, etc.)
+    // If planText is JSON, parse it. Otherwise, try to extract a table.
+    let tableHTML = '';
+    try {
+      const plan = JSON.parse(planText);
+      if (Array.isArray(plan)) {
+        // Array of objects: [{subject, date, hours}]
+        tableHTML = '<table style="width:100%;border-collapse:collapse;margin-top:12px;">';
+        tableHTML += '<thead><tr style="background:#e0f2e9;"><th style="padding:8px;border:1px solid #a5d6a7;">Subject</th><th style="padding:8px;border:1px solid #a5d6a7;">Date</th><th style="padding:8px;border:1px solid #a5d6a7;">Hours</th></tr></thead><tbody>';
+        for (const row of plan) {
+          tableHTML += `<tr><td style="padding:8px;border:1px solid #a5d6a7;">${row.subject||''}</td><td style="padding:8px;border:1px solid #a5d6a7;">${row.date||''}</td><td style="padding:8px;border:1px solid #a5d6a7;">${row.hours||''}</td></tr>`;
+        }
+        tableHTML += '</tbody></table>';
+        return tableHTML;
+      }
+    } catch(e) {}
+    // Fallback: try to parse lines like "Date | Subject | Hours"
+    const lines = planText.split('\n').filter(l=>l.trim().length>0);
+    if (lines.length > 1 && lines[0].toLowerCase().includes('subject')) {
+      // Assume first line is header
+      tableHTML = '<table style="width:100%;border-collapse:collapse;margin-top:12px;">';
+      for (let i=0; i<lines.length; ++i) {
+        const cells = lines[i].split('|').map(c=>c.trim());
+        tableHTML += '<tr>' + cells.map(cell=>`<td style="padding:8px;border:1px solid #a5d6a7;${i===0?'font-weight:bold;background:#e0f2e9;':''}">${cell}</td>`).join('') + '</tr>';
+      }
+      tableHTML += '</table>';
+      return tableHTML;
+    }
+    // Otherwise, just return the original text
+    return null;
+  }
+
+  // Patch plan rendering to show as table if possible
+  const origSetPlan = planOutput ? planOutput.innerText : null;
+  function setPlanOutput(planText) {
+    const table = renderPlanTable(planText);
+    if (table) {
+      planOutput.innerHTML = table;
+    } else {
+      planOutput.textContent = planText;
+    }
+    window.hidePlanLoading && window.hidePlanLoading();
+  }
+  // Expose for use in script.js or after fetch
+  window.setPlanOutput = setPlanOutput;
+  </script>
 </body>
 </html>
