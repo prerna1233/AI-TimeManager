@@ -10,13 +10,48 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Allow only Netlify and local origins for CORS and support credentials
+const allowedOrigins = [
+  'https://startling-yeot-cfdba6.netlify.app',
+  'https://unrivaled-mandazi-ce2313.netlify.app',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost',
+  'http://127.0.0.1'
+];
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// Test CORS endpoint
+app.get('/test-cors', (req, res) => {
+  res.json({ message: 'CORS is working!' });
+});
+
 app.use(bodyParser.json());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'a_very_secret_key_for_session', // It's better to use a long, random string from .env
+  secret: process.env.SESSION_SECRET || 'a_very_secret_key_for_session',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Set to true if you are using HTTPS
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  }
 }));
 
 // Serve static files from the root directory
@@ -40,7 +75,6 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.REDIREC
     process.exit(1);
 }
 
-
 // Route to start Google authentication
 app.get('/auth/google', (req, res) => {
   const scopes = [
@@ -60,7 +94,7 @@ app.get('/auth/google/callback', async (req, res) => {
     const { tokens } = await oauth2Client.getToken(code);
     req.session.tokens = tokens;
     console.log("✅ Successfully retrieved and stored tokens.");
-    res.redirect('/'); // Redirect back to the main page
+    res.redirect('/');
   } catch (error) {
     console.error('❌ Error retrieving access token. Full error:', error);
     res.redirect('/?error=auth_failed');

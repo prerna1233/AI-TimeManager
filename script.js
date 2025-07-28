@@ -8,10 +8,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const deadlinesInput = document.getElementById('deadlines');
 
 
-    const API_BASE_URL = 'http://localhost:3000';
+    // Set your deployed backend URL here
+    const API_BASE_URL = (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))
+      ? 'http://localhost:3000'
+      : 'https://ai-timemanager-xyz.onrender.com'; // <-- CHANGE THIS to your real Render backend URL
+
+    // Always allow user to try connecting Google Calendar
+    connectCalendarBtn.disabled = false;
+    connectCalendarBtn.textContent = 'Connect Google Calendar';
 
     // Check auth status on page load
-    fetch(`${API_BASE_URL}/api/auth-status`)
+    fetch(`${API_BASE_URL}/api/auth-status`, { credentials: 'include' })
         .then(res => {
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -24,11 +31,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 connectCalendarBtn.disabled = true;
                 useCalendarCheckbox.checked = true;
                 manualHoursInput.style.display = 'none';
+            } else {
+                connectCalendarBtn.textContent = 'Connect Google Calendar';
+                connectCalendarBtn.disabled = false;
+                useCalendarCheckbox.checked = false;
+                manualHoursInput.style.display = 'block';
             }
         })
         .catch(error => {
             console.error("Error checking auth status:", error);
             planOutput.textContent = "Could not connect to the server. Please ensure it's running.";
+            connectCalendarBtn.textContent = 'Connect Google Calendar';
+            connectCalendarBtn.disabled = false;
+            useCalendarCheckbox.checked = false;
+            manualHoursInput.style.display = 'block';
         });
 
     // Redirect to Google auth on button click
@@ -74,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: 'include',
                 body: JSON.stringify(requestBody),
             });
 
