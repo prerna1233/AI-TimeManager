@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 
 // Allow only Netlify and local origins for CORS and support credentials
 const allowedOrigins = [
+  'https://monumental-pudding-83f9f5.netlify.app/', // TODO: Replace with your Netlify frontend URL
   'https://startling-yeot-cfdba6.netlify.app',
   'https://unrivaled-mandazi-ce2313.netlify.app',
   'http://localhost:3000',
