@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Set your deployed backend URL here
     const API_BASE_URL = (window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1'))
       ? 'http://localhost:3000'
-      : 'https://ai-timemanager-xyz.onrender.com'; // <-- CHANGE THIS to your real Render backend URL
+      : 'https://ai-timemanager.onrender.com'; // <-- CHANGE THIS to your real Render backend URL
 
     // Always allow user to try connecting Google Calendar
     connectCalendarBtn.disabled = false;
